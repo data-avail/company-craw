@@ -8,7 +8,8 @@
     "dependencies": {
         "request" : "latest",
         "moment" : "latest",
-        "async" : "latest"
+        "async" : "latest",
+        "csv" : "latest"
     },
     "repository" : {
         "type": "git",

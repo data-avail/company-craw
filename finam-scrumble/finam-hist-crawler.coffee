@@ -2,14 +2,14 @@ request = require "request"
 fs = require "fs"
 moment = require "moment"
 async = require "async"
+csv = require "csv"
 
+downloadPeriod = (params, callback) ->
 
-
-downloadPeriod = (data, callback) ->
-
-  symbol = data.symbol
-  s = data.momentStart
-  e = data.momentEnd
+  symbol = params.symbol
+  dir = params.outDirectory
+  s = params.momentStart
+  e = params.momentEnd
   e ?= moment()
 
   file = "#{symbol}_#{s.format("YYMMDD")}_#{e.format("YYMMDD")}"
@@ -17,28 +17,34 @@ downloadPeriod = (data, callback) ->
   "df=#{s.day()}&mf=#{s.month()}&yf=#{s.year()}&dt=#{e.day()}&mt=#{e.month()}&yt=#{e.year()}"+
   "&p=8&f=#{file}&e=.txt&cn=#{symbol}&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=2&datf=1&at=1"
 
-  r = request(href).pipe(fs.createWriteStream("data/#{file}.txt"))
+  r = request(href).pipe(fs.createWriteStream("#{dir}/#{file}.txt"))
   r.on "close", callback
 
-download = (symbols, momentStart, momentEnd, maxRequestsAtOnce) ->
-  maxRequestsAtOnce ?= 1
-  ###
-  momentEnd ?= moment().add "d", -1
-  splitInDays ?= momentEnd.diff momentStart, "days"
-  maxRequestsAtOnce ?= 1
-  arr = []
-  splitDate = momentStart
-  while splitDate.diff(momentEnd) < 0
-    s = splitDate
-    e = moment(splitDate).add "d", splitInDays
-    if e.diff(moment()) > 0 then e = moment()
-    arr = arr.concat symbols.map((m) -> symbol : m, momentStart : s, momentEnd : e)
-    splitDate = e
-  ###
-  arr = symbols.map((m) -> symbol : m, momentStart : momentStart, momentEnd : momentEnd)
-  console.log arr
-  async.eachLimit arr, maxRequestsAtOnce, downloadPeriod, (err) ->
-    console.log "done !"
+download = (symbols, params, callback) ->
+  console.log symbols
 
-download ["GAZP", "AVAN"], moment([2009, 0, 1])
+  momentStart = params.momentStart
+  momentEnd = params.momentEnd
+  maxRequestsAtOnce = params.maxRequestsAtOnce
+  outDirectory = params.outDirectory
+
+  maxRequestsAtOnce ?= 1
+  arr = symbols.map((m) -> symbol : m, momentStart : momentStart, momentEnd : momentEnd, outDirectory : outDirectory)
+  console.log arr
+  async.eachLimit arr, maxRequestsAtOnce, downloadPeriod, callback
+
+daonloadAll = (params, callback) ->
+  csv().from(params.symolsListFile, trim : true)
+    .transform((row, idx) ->
+      if idx != 0 and row[0] then row[params.symbolColumn]
+    )
+    .to.array((data) -> download(data, params, callback))
+
+daonloadAll
+  symolsListFile : "data/dicts/rts-securities.csv"
+  symbolColumn :  0
+  outDirectory : "data/micex_equity_per_day"
+  momentStart : moment([2009, 0, 1])
+  maxRequestsAtOnce : 1,
+    (err) -> console.log " done : " + err
 
