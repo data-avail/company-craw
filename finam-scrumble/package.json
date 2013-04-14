@@ -1,0 +1,17 @@
+{ "name": "finam-scrumble",
+    "description": "finam-scrumble",
+    "version": "0.0.1", "url": "http://github.com/baio/finam-scrumble",
+    "author": "Max Putilov <max.putilov@gmail.com>",
+    "keywords": ["finam-scrumble"],
+    "engines": ["node >= 0.4.0"],
+    "main": "./finam-scrumble.js",
+    "dependencies": {
+        "request" : "latest",
+        "moment" : "latest",
+        "async" : "latest"
+    },
+    "repository" : {
+        "type": "git",
+        "url": "git://github.com/baio/finam-scrumble"
+    }
+}
