@@ -23,7 +23,7 @@
       e = moment();
     }
     file = "" + symbol + "_" + (s.format("YYMMDD")) + "_" + (e.format("YYMMDD"));
-    href = ("http://195.128.78.52/" + file + ".txt?market=1&em=16842&code=" + symbol + "&") + ("df=" + (s.day()) + "&mf=" + (s.month()) + "&yf=" + (s.year()) + "&dt=" + (e.day()) + "&mt=" + (e.month()) + "&yt=" + (e.year())) + ("&p=8&f=" + file + "&e=.txt&cn=" + symbol + "&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=2&datf=1&at=1");
+    href = ("http://195.128.78.52/" + file + ".txt?market=1&em=" + symbol + "&") + ("df=" + (s.day()) + "&mf=" + (s.month()) + "&yf=" + (s.year()) + "&dt=" + (e.day()) + "&mt=" + (e.month()) + "&yt=" + (e.year())) + ("&p=8&f=" + file + "&e=.txt&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=2&datf=1&at=1");
     r = request(href).pipe(fs.createWriteStream("" + dir + "/" + file + ".txt"));
     return r.on("close", callback);
   };
@@ -64,9 +64,9 @@
   };
 
   daonloadAll({
-    symolsListFile: "data/dicts/rts-securities.csv",
+    symolsListFile: "data/dicts/finam-micex-equity-codes.txt",
     symbolColumn: 0,
-    outDirectory: "data/micex_equity_per_day",
+    outDirectory: "data/micex-equity-per-day-finam-codes",
     momentStart: moment([2009, 0, 1]),
     maxRequestsAtOnce: 1
   }, function(err) {
