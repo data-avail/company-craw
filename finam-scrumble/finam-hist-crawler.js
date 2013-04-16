@@ -12,18 +12,20 @@
 
   csv = require("csv");
 
-  downloadPeriod = function(params, callback) {
-    var dir, e, file, href, r, s, symbol;
+  fs = require("fs");
 
-    symbol = params.symbol;
+  downloadPeriod = function(params, callback) {
+    var dir, e, file, href, kvp, r, s;
+
+    kvp = params.symbol;
     dir = params.outDirectory;
     s = params.momentStart;
     e = params.momentEnd;
     if (e == null) {
       e = moment();
     }
-    file = "" + symbol + "_" + (s.format("YYMMDD")) + "_" + (e.format("YYMMDD"));
-    href = ("http://195.128.78.52/" + file + ".txt?market=1&em=" + symbol + "&") + ("df=" + (s.day()) + "&mf=" + (s.month()) + "&yf=" + (s.year()) + "&dt=" + (e.day()) + "&mt=" + (e.month()) + "&yt=" + (e.year())) + ("&p=8&f=" + file + "&e=.txt&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=2&datf=1&at=1");
+    file = "" + kvp.val + "_" + (s.format("YYMMDD")) + "_" + (e.format("YYMMDD"));
+    href = ("http://195.128.78.52/" + file + ".txt?market=1&em=" + kvp.key + "&code=" + kvp.val) + ("df=" + (s.day()) + "&mf=" + (s.month()) + "&yf=" + (s.year()) + "&dt=" + (e.day()) + "&mt=" + (e.month()) + "&yt=" + (e.year())) + ("&p=8&f=" + file + "&cn=" + kvp.val + "&e=.txt&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=2&datf=1&at=1");
     r = request(href).pipe(fs.createWriteStream("" + dir + "/" + file + ".txt"));
     return r.on("close", callback);
   };
@@ -52,21 +54,27 @@
   };
 
   daonloadAll = function(params, callback) {
-    return csv().from(params.symolsListFile, {
-      trim: true
-    }).transform(function(row, idx) {
-      if (idx !== 0 && row[0]) {
-        return row[params.symbolColumn];
-      }
-    }).to.array(function(data) {
-      return download(data, params, callback);
-    });
+    var i, k, keys, kvr, res, vals, _i, _len;
+
+    kvr = fs.readFileSync(params.symolsFile, "utf-8").split('\n');
+    keys = kvr[0].split(',');
+    vals = kvr[1].split(',');
+    res = [];
+    for (i = _i = 0, _len = keys.length; _i < _len; i = ++_i) {
+      k = keys[i];
+      res.push({
+        key: k,
+        val: vals[i]
+      });
+    }
+    console.log(res);
+    return download(res, params, callback);
   };
 
   daonloadAll({
-    symolsListFile: "data/dicts/finam-micex-equity-codes.txt",
+    symolsFile: "data/dicts/finam-id-symbol-dict.txt",
     symbolColumn: 0,
-    outDirectory: "data/micex-equity-per-day-finam-codes",
+    outDirectory: "data/micex-equity-per-day",
     momentStart: moment([2009, 0, 1]),
     maxRequestsAtOnce: 1
   }, function(err) {
